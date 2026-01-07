@@ -1,0 +1,37 @@
+# Python
+**/venv/
+**/__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Node
+**/node_modules/
+**/dist/
+.npm
+npm-debug.log*
+
+# Expo / React Native
+.expo/
+*.jks
+*.p8
+*.pyc
+*.keystore
+**/.expo-shared/
+node_modules/
+dist/
+web-build/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large Models (if any)
+**/models/*.onnx
+**/models/*.pth

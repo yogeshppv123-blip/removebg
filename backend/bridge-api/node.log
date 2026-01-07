@@ -1,0 +1,7 @@
+
+> bridge-api@1.0.0 start
+> node server.js
+
+[dotenv@17.2.3] injecting env (7) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+Node Bridge API running on port 5002
+Connected to MongoDB
