@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Button, Image, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker'; // Or your preferred picker
 
-const API_URL = "http://YOUR_NODE_SERVER_IP:5002/upload";
+const API_URL = "https://api.buildora.cloud/api/remove-bg";
 
 export default function BackgroundRemover() {
     const [image, setImage] = useState(null);

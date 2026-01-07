@@ -17,7 +17,7 @@ const { width } = Dimensions.get('window');
 
 // --- CONFIGURATION ---
 const IS_PROD = true; // Set to true for your live server
-const PROD_DOMAIN = "http://api.buildora.cloud:5002"; // Your live domain
+const PROD_DOMAIN = "https://api.buildora.cloud"; // Your live domain (HTTPS, no port)
 const LOCAL_IP = "192.168.1.35";
 
 const BASE_URL = IS_PROD

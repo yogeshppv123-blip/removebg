@@ -14,6 +14,7 @@ services:
     environment:
       - PYTHON_API_URL=http://ai-api:8000/remove-bg
       - MONGODB_URI=mongodb://mongodb:27017/removebg_saas
+      - PUBLIC_URL=https://api.buildora.cloud
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
