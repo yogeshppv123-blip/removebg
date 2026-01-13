@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const FormData = require("form-data");
 const cloudinary = require("cloudinary").v2;
 const ImageModel = require("./models/Image");
+const ApiKey = require("./models/ApiKey");
 
 const cors = require("cors");
 const app = express();
@@ -36,6 +37,21 @@ if (!fs.existsSync(publicDir)) {
 // Serve static files from 'public' directory
 app.use(express.static(publicDir));
 app.use(express.json());
+
+// --- USAGE TRACKING MIDDLEWARE ---
+const trackUsage = async (req, source = 'web') => {
+    const apiKey = req.headers['x-api-key'];
+    let origin = req.headers['origin'] || req.headers['referer'] || 'unknown';
+
+    // Update aggregate count if API key provided
+    if (apiKey) {
+        await ApiKey.findOneAndUpdate(
+            { key: apiKey },
+            { $inc: { usageCount: 1 }, $set: { lastUsed: new Date() } }
+        ).catch(e => console.log("API Key Tracking Error:", e.message));
+    }
+    return { apiKey, origin };
+};
 
 app.post("/upload", upload.single("image"), async (req, res) => {
     try {
@@ -80,9 +96,13 @@ app.post("/upload", upload.single("image"), async (req, res) => {
         });
 
         // 3. Save to MongoDB
+        const { apiKey, origin } = await trackUsage(req, 'web');
         const newImageRecord = new ImageModel({
             originalImage: originalUpload.secure_url,
             processedImage: processedUpload.secure_url,
+            source: 'web',
+            apiKey: apiKey,
+            origin: origin
         });
         await newImageRecord.save();
 
@@ -123,6 +143,18 @@ app.post("/api/remove-bg", upload.single("image"), async (req, res) => {
         // We convert it to base64 for easy use in React Native
         const processedBase64 = Buffer.from(response.data.image, 'hex').toString('base64');
 
+        // Track Usage
+        const { apiKey, origin } = await trackUsage(req, 'mobile');
+
+        // Save mobile hit to DB for tracking
+        const logEntry = new ImageModel({
+            source: apiKey ? 'external' : 'mobile',
+            apiKey: apiKey,
+            origin: origin,
+            processedImage: 'base64_stored_in_logs' // We don't store full base64 to save DB space
+        });
+        await logEntry.save();
+
         res.json({
             success: true,
             image: `data:image/png;base64,${processedBase64}`
@@ -137,4 +169,47 @@ app.post("/api/remove-bg", upload.single("image"), async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5002;
+
+// --- ADMIN API ---
+app.post("/api/admin/login", (req, res) => {
+    const { adminId, password } = req.body;
+    if (adminId === process.env.ADMIN_ID && password === process.env.ADMIN_PASSWORD) {
+        res.json({ success: true, token: "admin_session_active" });
+    } else {
+        res.status(401).json({ error: "Invalid credentials" });
+    }
+});
+
+app.get("/api/admin/stats", async (req, res) => {
+    const token = req.headers['authorization'];
+    if (token !== "admin_session_active") return res.status(401).json({ error: "Unauthorized" });
+
+    try {
+        const totalImages = await ImageModel.countDocuments();
+        const webUsage = await ImageModel.countDocuments({ source: 'web' });
+        const mobileUsage = await ImageModel.countDocuments({ source: 'mobile' });
+        const externalUsage = await ImageModel.countDocuments({ source: 'external' });
+
+        const apiKeys = await ApiKey.find().sort({ usageCount: -1 });
+
+        // Get grouped external site usage
+        const externalSites = await ImageModel.aggregate([
+            { $match: { source: 'external' } },
+            { $group: { _id: "$origin", count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ]);
+
+        res.json({
+            totalImages,
+            webUsage,
+            mobileUsage,
+            externalUsage,
+            apiKeys,
+            externalSites
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(PORT, () => console.log(`Node Bridge API running on port ${PORT}`));

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,8 +32,8 @@
             justify-content: center;
             overflow-x: hidden;
             background: radial-gradient(circle at top right, #1e1b4b, transparent),
-                        radial-gradient(circle at bottom left, #1e1b4b, transparent),
-                        #0f172a;
+                radial-gradient(circle at bottom left, #1e1b4b, transparent),
+                #0f172a;
         }
 
         .container {
@@ -78,7 +79,8 @@
             position: relative;
         }
 
-        .drop-zone:hover, .drop-zone.dragover {
+        .drop-zone:hover,
+        .drop-zone.dragover {
             border-color: var(--primary);
             background: rgba(99, 102, 241, 0.05);
         }
@@ -117,7 +119,9 @@
             cursor: not-allowed;
         }
 
-        #fileInput { display: none; }
+        #fileInput {
+            display: none;
+        }
 
         .result-container {
             display: none;
@@ -150,10 +154,10 @@
         }
 
         .checkerboard {
-            background-image: 
-                linear-gradient(45deg, #2e2e2e 25%, transparent 25%), 
-                linear-gradient(-45deg, #2e2e2e 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #2e2e2e 75%), 
+            background-image:
+                linear-gradient(45deg, #2e2e2e 25%, transparent 25%),
+                linear-gradient(-45deg, #2e2e2e 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #2e2e2e 75%),
                 linear-gradient(-45deg, transparent 75%, #2e2e2e 75%);
             background-size: 20px 20px;
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
@@ -173,8 +177,13 @@
         }
 
         @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .success-badge {
@@ -199,8 +208,77 @@
             display: inline-block;
             margin-top: 1rem;
         }
+
+        /* Admin Styles */
+        .admin-trigger {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.3;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .admin-trigger:hover {
+            opacity: 1;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: #334155;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Remove Backgrounds</h1>
@@ -209,7 +287,8 @@
         <div class="upload-card">
             <div id="dropZone" class="drop-zone">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 <div id="fileInfo">
                     <h3>Click or Drag Image Here</h3>
@@ -237,6 +316,46 @@
                     <a id="downloadBtn" href="" download="removed-bg.png" class="download-btn">Download PNG</a>
                 </div>
             </div>
+        </div>
+        <div class="admin-trigger" onclick="openAdmin()">Admin Portal</div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content" id="loginForm">
+            <h2 style="margin-bottom: 1rem;">Admin Login</h2>
+            <input type="text" id="adminId" class="admin-input" placeholder="Admin ID">
+            <input type="password" id="adminPass" class="admin-input" placeholder="Password">
+            <button onclick="handleLogin()" class="btn-primary" style="width: 100%;">Login</button>
+            <button onclick="closeAdmin()"
+                style="background:transparent; border:none; color:#94a3b8; margin-top:1rem; cursor:pointer; width:100%;">Cancel</button>
+        </div>
+        <div class="modal-content" id="statsView" style="display: none; max-width: 600px;">
+            <h2 style="margin-bottom: 1rem;">Usage Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-val" id="statTotal">0</div>
+                    <div>Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="statWeb">0</div>
+                    <div>Web</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="statMobile">0</div>
+                    <div>Mobile</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="statExternal">0</div>
+                    <div>External</div>
+                </div>
+            </div>
+            <div id="externalList" style="margin-top: 1.5rem; text-align: left;">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">External Website Hits</h3>
+                <div id="sitesContent"></div>
+            </div>
+            <button onclick="closeAdmin()" class="btn-primary" style="width: 100%; margin-top: 1.5rem;">Close
+                Dashboard</button>
         </div>
     </div>
 
@@ -306,7 +425,7 @@
                     processedImg.src = data.processed;
                     downloadBtn.href = data.processed;
                     resultContainer.style.display = 'grid';
-                    
+
                     // Smooth scroll to results
                     setTimeout(() => {
                         resultContainer.scrollIntoView({ behavior: 'smooth' });
@@ -323,6 +442,65 @@
                 processBtn.innerText = 'Upload Another';
             }
         };
+
+        // --- ADMIN LOGIC ---
+        let adminToken = null;
+
+        function openAdmin() {
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+
+        function closeAdmin() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
+
+        async function handleLogin() {
+            const adminId = document.getElementById('adminId').value;
+            const password = document.getElementById('adminPass').value;
+
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminId, password })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                adminToken = data.token;
+                loadStats();
+            } else {
+                alert('Invalid Credentials');
+            }
+        }
+
+        async function loadStats() {
+            const res = await fetch('/api/admin/stats', {
+                headers: { 'Authorization': adminToken }
+            });
+            const data = await res.json();
+
+            document.getElementById('statTotal').innerText = data.totalImages;
+            document.getElementById('statWeb').innerText = data.webUsage;
+            document.getElementById('statMobile').innerText = data.mobileUsage;
+            document.getElementById('statExternal').innerText = data.externalUsage;
+
+            let sitesHtml = '';
+            if (data.externalSites && data.externalSites.length > 0) {
+                data.externalSites.forEach(site => {
+                    sitesHtml += `<div style="display:flex; justify-content:space-between; padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                        <span>${site._id || 'App'}</span>
+                        <span style="color:#818cf8; font-weight:800;">${site.count}</span>
+                    </div>`;
+                });
+            } else {
+                sitesHtml = '<p style="color:#64748b;">No external sites detected yet.</p>';
+            }
+            document.getElementById('sitesContent').innerHTML = sitesHtml;
+
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('statsView').style.display = 'block';
+        }
     </script>
 </body>
+
 </html>
