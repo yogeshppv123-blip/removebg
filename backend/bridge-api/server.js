@@ -212,4 +212,26 @@ app.get("/api/admin/stats", async (req, res) => {
     }
 });
 
+app.post("/api/admin/create-key", async (req, res) => {
+    const token = req.headers['authorization'];
+    if (token !== "admin_session_active") return res.status(401).json({ error: "Unauthorized" });
+
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: "Project name required" });
+
+    try {
+        // Simple random key generation
+        const newKey = "sk_" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+        await ApiKey.create({
+            key: newKey,
+            name: name
+        });
+
+        res.json({ success: true, key: newKey, name: name });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(PORT, () => console.log(`Node Bridge API running on port ${PORT}`));

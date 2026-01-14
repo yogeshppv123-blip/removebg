@@ -354,6 +354,24 @@
                 <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">External Website Hits</h3>
                 <div id="sitesContent"></div>
             </div>
+
+            <div style="margin-top: 2rem; border-top: 1px solid #334155; padding-top: 1rem;">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Generate New API Key</h3>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="newKeyName" class="admin-input"
+                        placeholder="Project Name (e.g. Samajwadi App)" style="margin:0;">
+                    <button onclick="generateKey()" class="btn-primary"
+                        style="margin:0; padding: 0.8rem 1rem; font-size: 0.9rem;">Create</button>
+                </div>
+                <div id="keyResult"
+                    style="margin-top: 1rem; display: none; background: #0f172a; padding: 1rem; border-radius: 8px; border: 1px solid #10b981;">
+                    <p style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 0.2rem;">New API Key (Copy it now):</p>
+                    <code id="keyDisplay" style="color: #10b981; font-weight: bold; word-break: break-all;"></code>
+                </div>
+                <h3 style="font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.5rem;">Active Keys</h3>
+                <div id="keysListContent"></div>
+            </div>
+
             <button onclick="closeAdmin()" class="btn-primary" style="width: 100%; margin-top: 1.5rem;">Close
                 Dashboard</button>
         </div>
@@ -497,8 +515,51 @@
             }
             document.getElementById('sitesContent').innerHTML = sitesHtml;
 
+            // Load Keys List
+            let keysHtml = '';
+            if (data.apiKeys && data.apiKeys.length > 0) {
+                data.apiKeys.forEach(k => {
+                    keysHtml += `<div style="display:flex; justify-content:space-between; align-items:center; padding: 0.5rem 0; border-bottom: 1px solid #334155; font-size:0.9rem;">
+                        <div>
+                            <div style="color:white;">${k.name}</div>
+                            <div style="color:#64748b; font-size:0.75rem;">${k.key.substring(0, 8)}...</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="color:#10b981;">${k.usageCount} uses</div>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                keysHtml = '<p style="color:#64748b;">No API keys generated.</p>';
+            }
+            document.getElementById('keysListContent').innerHTML = keysHtml;
+
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('statsView').style.display = 'block';
+        }
+
+        async function generateKey() {
+            const name = document.getElementById('newKeyName').value;
+            if (!name) return alert("Please enter a project name");
+
+            const res = await fetch('/api/admin/create-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': adminToken
+                },
+                body: JSON.stringify({ name })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('keyResult').style.display = 'block';
+                document.getElementById('keyDisplay').innerText = data.key;
+                document.getElementById('newKeyName').value = '';
+                loadStats(); // Refresh list
+            } else {
+                alert("Error: " + data.error);
+            }
         }
     </script>
 </body>
