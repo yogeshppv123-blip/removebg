@@ -12,7 +12,10 @@ const ApiKey = require("./models/ApiKey");
 
 const cors = require("cors");
 const app = express();
-const upload = multer({ dest: "uploads/" });
+const upload = multer({
+    dest: "uploads/",
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 app.use(cors());
 
@@ -36,7 +39,9 @@ if (!fs.existsSync(publicDir)) {
 
 // Serve static files from 'public' directory
 app.use(express.static(publicDir));
-app.use(express.json());
+app.use(express.static(publicDir));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // --- USAGE TRACKING MIDDLEWARE ---
 const trackUsage = async (req, source = 'web') => {
@@ -70,6 +75,8 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 
         const response = await axios.post(pythonApiUrl, form, {
             headers: { ...form.getHeaders() },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
         });
 
         const processedHex = response.data.image;
@@ -136,7 +143,11 @@ app.post("/api/remove-bg", upload.single("image"), async (req, res) => {
         const response = await axios.post(
             process.env.PYTHON_API_URL || "http://localhost:8000/remove-bg",
             form,
-            { headers: { ...form.getHeaders() } }
+            {
+                headers: { ...form.getHeaders() },
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity
+            }
         );
 
         // Python returns hex by default in my main.py
